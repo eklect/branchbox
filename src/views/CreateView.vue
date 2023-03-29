@@ -5,20 +5,17 @@ import axios from "axios";
 
 const props = defineProps([]);
 let data    = reactive({
-    containers: null
+    branch: null,
 });
 onMounted(() => {
-    axios.get('/api/getContainers').then((response) => {
-        data.containers = response.data;
-        console.log(data.containers)
-    });
+
 });
 </script>
 <template>
     <v-container>
         <v-row>
             <v-col>
-                {{ data.containers }}
+                <v-text-field lable="Enter Branch Name" v-model="data.branch"></v-text-field>
             </v-col>
         </v-row>
     </v-container>

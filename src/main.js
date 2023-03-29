@@ -9,6 +9,9 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import {aliases, mdi} from 'vuetify/iconsets/mdi'
 
+//Axios
+import axios from 'axios';
+
 const vuetify = createVuetify({
     components,
     directives,
@@ -18,8 +21,8 @@ const vuetify = createVuetify({
             branchBox: {
                 dark  : false,
                 colors: {
-                    primary  : '#684aa4',
-                    secondary: '#343750',
+                    primary  : '#343750',
+                    secondary: '#684aa4',
                     accent   : '#82B1FF',
                     error    : '#FF5252',
                     info     : '#2196F3',
@@ -41,7 +44,6 @@ const vuetify = createVuetify({
 import App from './App.vue'
 import router from './router'
 
-import './assets/main.css'
 
 const app = createApp(App)
 

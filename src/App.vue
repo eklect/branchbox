@@ -1,16 +1,30 @@
 <script setup>
-import {RouterLink, RouterView} from 'vue-router'
-import BbNav from "@/components/BbNav.vue";
-
-let drawer = true;
+import {RouterView} from 'vue-router'
 </script>
 <template>
     <v-layout>
-        <v-app-bar color="primary" title="BranchBox">
-            <template v-slot:prepend>
-                <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>            </template>
+        <v-app-bar color="primary" >
+            <v-list-item to="/">
+                <v-icon icon="mdi-home"></v-icon>
+                Home
+            </v-list-item>
+            <v-list-item to="/containers">
+                <v-icon icon="mdi-package"></v-icon>
+                Containers
+            </v-list-item>
+            <v-list-item to="/create">
+                <v-icon icon="mdi-plus"></v-icon>
+                Create
+            </v-list-item>
+            <template v-slot:append>
+                <v-list-item to="/settings">
+                    <v-icon icon="mdi-gear"></v-icon>
+                    Settings
+                </v-list-item>
+                <v-app-bar-title>Branch Box</v-app-bar-title>
+
+            </template>
         </v-app-bar>
-        <bb-nav :drawer="drawer"></bb-nav>
         <v-main>
             <RouterView/>
         </v-main>

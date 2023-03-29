@@ -12,6 +12,18 @@ const router = createRouter({
             path     : '/containers',
             name     : 'containers',
             component: () => import('../views/ContainerView.vue')
+        },
+        {
+            path     : '/create',
+            name     : 'create',
+            component: () => import('../views/CreateView.vue')
+        },
+        //Create path for settings
+        {
+            path     : '/settings',
+            name     : 'settings',
+            component: () => import('../views/SettingsView.vue')
+
         }
     ]
 })

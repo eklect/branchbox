@@ -1,15 +1,18 @@
 <script setup>
 const props = defineProps(['drawer']);
-let isOpen  = props.drawer;
 </script>
 <template>
-    <v-navigation-drawer v-model="isOpen">
+    <v-navigation-drawer
+        v-model="props.drawer"
+    >
         <v-list>
-            <v-list-item>
-                <RouterLink to="/">Home</RouterLink>
+            <v-list-item to="/">
+                <v-icon icon="mdi-home"></v-icon>
+                Home
             </v-list-item>
-            <v-list-item>
-                <RouterLink to="/containers">Containers</RouterLink>
+            <v-list-item to="/containers">
+                <v-icon icon="mdi-package"></v-icon>
+                Containers
             </v-list-item>
         </v-list>
     </v-navigation-drawer>
