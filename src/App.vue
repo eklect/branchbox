@@ -18,10 +18,10 @@ import {RouterView} from 'vue-router'
             </v-list-item>
             <template v-slot:append>
                 <v-list-item to="/settings">
-                    <v-icon icon="mdi-gear"></v-icon>
+                    <v-icon icon="mdi-cog"></v-icon>
                     Settings
                 </v-list-item>
-                <v-app-bar-title>Branch Box</v-app-bar-title>
+                <v-app-bar-title class="mx-5">Branch Box</v-app-bar-title>
 
             </template>
         </v-app-bar>
