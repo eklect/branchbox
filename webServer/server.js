@@ -23,9 +23,33 @@ app.get('/api/getContainers', (req, res) => {
             res.status(500).send(stderr);
             return;
         }
-        res.send(stdout);
+        let containers        = stdout.split('\n');
+        containers            = containers.map((container) => {
+            return container.split('|');
+        });
+        let headers           = ['ID', 'Name', 'Image', 'Status'];
+        let returnData        = {};
+        returnData.headers    = headers;
+        returnData.containers = containers;
+        res.send(returnData);
     });
 });
+
+app.get('/api/createContainer', (req, res) => {
+    exec(`docker run -d -p ${req.query.port}:80 --name ${req.query.name} ${req.query.image}`, (error, stdout, stderr) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            res.status(500).send(error.message);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            res.status(500).send(stderr);
+            return;
+        }
+        res.send(stdout);
+    });
+})
 
 //Last Route. Automatically send 404
 app.get('*', (req, res) => {

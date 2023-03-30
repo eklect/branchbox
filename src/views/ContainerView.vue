@@ -5,11 +5,13 @@ import axios from "axios";
 
 const props = defineProps([]);
 let data    = reactive({
-    containers: null
+    containers: null,
+    headers   : null,
 });
 onMounted(() => {
     axios.get('/api/getContainers').then((response) => {
-        data.containers = response.data;
+        data.containers = response.data.containers;
+        data.headers    = response.data.headers;
         console.log(data.containers)
     });
 });
@@ -18,7 +20,10 @@ onMounted(() => {
     <v-container>
         <v-row>
             <v-col>
-                {{ data.containers }}
+                <v-table
+                    :headers="data.headers"
+                    :items="data.containers"
+                    class="elevation-1"></v-table>
             </v-col>
         </v-row>
     </v-container>
