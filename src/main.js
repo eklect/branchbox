@@ -1,6 +1,7 @@
 import {createApp} from 'vue'
-import {createPinia} from 'pinia'
+import * as labs from 'vuetify/labs/components' //Experimental components
 
+import {createPinia} from 'pinia'
 // Vuetify
 import "@mdi/font/css/materialdesignicons.css";
 import 'vuetify/styles'
@@ -15,6 +16,7 @@ import axios from 'axios';
 const vuetify = createVuetify({
     components,
     directives,
+    ...labs,
     theme: {
         defaultTheme: 'branchBox',
         themes      : {
@@ -44,11 +46,10 @@ const vuetify = createVuetify({
 import App from './App.vue'
 import router from './router'
 
-
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
 app.use(vuetify)
 
-app.mount('#app')
+const _vm = app.mount('#app')

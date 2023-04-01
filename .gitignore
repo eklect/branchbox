@@ -27,3 +27,7 @@ coverage
 *.sln
 *.sw?
 package-lock.json
+
+docker/*.yml
+docker/*.DockerFile
+docker/copy/*

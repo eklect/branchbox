@@ -1,10 +1,13 @@
 <script setup>
-import {onMounted} from "vue";
+import {nextTick, onMounted} from "vue";
 import {reactive} from "vue";
 import axios from "axios";
+import {io} from "socket.io-client";
 
-const props = defineProps([]);
-let data    = reactive({
+//Init socket.io
+const ioclient = io();
+const props    = defineProps([]);
+let data       = reactive({
     containers: null,
     headers   : null,
 });
@@ -12,7 +15,14 @@ onMounted(() => {
     axios.get('/api/getContainers').then((response) => {
         data.containers = response.data.containers;
         data.headers    = response.data.headers;
-        console.log(data.containers)
+    })
+
+    ioclient.on('containerListUpdated', (msg) => {
+        // nextTick(() => {
+        //     data.containers = msg.containers;
+        //     data.headers    = msg.headers;
+        // });
+
     });
 });
 </script>
@@ -20,10 +30,17 @@ onMounted(() => {
     <v-container>
         <v-row>
             <v-col>
-                <v-table
-                    :headers="data.headers"
-                    :items="data.containers"
-                    class="elevation-1"></v-table>
+                <v-table>
+                    <tr>
+                        <th v-for="header in data.headers" :key="header">{{ header.title }}</th>
+                    </tr>
+                    <tr v-for="container in data.containers" :key="container.id">
+                        <td>{{ container.id }}</td>
+                        <td>{{ container.name }}</td>
+                        <td>{{ container.image }}</td>
+                        <td>{{ container.status }}</td>
+                    </tr>
+                </v-table>
             </v-col>
         </v-row>
     </v-container>

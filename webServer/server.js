@@ -1,10 +1,14 @@
-const path    = require('path');
-const express = require('express');
-const app     = express();
-const port    = 3000;
-const {exec}  = require('child_process');
+const path         = require('path');
+const express      = require('express');
+const fs           = require('fs');
+const childProcess = require('child_process');
+const bodyParser   = require('body-parser')
+const socketio     = require("socket.io");
+const app          = express();
+const port         = 3000;
 
 // eslint-disable-next-line no-undef
+app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../dist')));
 app.get('/', (req, res) =>
         res.sendFile(path.join(__dirname, '../dist', 'index.html'))
@@ -12,42 +16,33 @@ app.get('/', (req, res) =>
 
 //API Calls
 app.get('/api/getContainers', (req, res) => {
-    exec('docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}"', (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            res.status(500).send(error.message);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            res.status(500).send(stderr);
-            return;
-        }
-        let containers        = stdout.split('\n');
-        containers            = containers.map((container) => {
-            return container.split('|');
-        });
-        let headers           = ['ID', 'Name', 'Image', 'Status'];
-        let returnData        = {};
-        returnData.headers    = headers;
-        returnData.containers = containers;
-        res.send(returnData);
-    });
+    getContainerList(res);
 });
 
-app.get('/api/createContainer', (req, res) => {
-    exec(`docker run -d -p ${req.query.port}:80 --name ${req.query.name} ${req.query.image}`, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            res.status(500).send(error.message);
-            return;
+app.post('/api/createImage', (req, res) => {
+    let params = req.body;
+    createImage(params, res);
+
+});
+app.post('/api/startContainer', (req, res) => {
+    startContainer(res);
+
+});
+
+app.post('/api/sendCommand', (req, res) => {
+    let params      = req.body;
+    let command     = params.command;
+    let commandArgs = params.commandArgs;
+    let x           = childProcess.spawn(command, commandArgs);
+    x.stdout.on('data', (data) => {
+        if (data.toString()) {
+            io.emit('buildProgress', data.toString());
         }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            res.status(500).send(stderr);
-            return;
-        }
-        res.send(stdout);
+    });
+    x.stdout.on('close', (data) => {
+        io.emit('buildProgress', "Command Complete!");
+        res.send('Command Complete');
+
     });
 })
 
@@ -57,6 +52,114 @@ app.get('*', (req, res) => {
 
 });
 
-app.listen((port), () =>
+//Main Web Server
+const webServer = app.listen((port), () =>
         console.log(`Branch Box Server listening on http://localhost:${port}`)
 );
+
+//Socket Server
+const io = socketio(webServer);
+io.on('connection', (socket) => {
+});
+io.on('disconnect', (socket) => {
+});
+
+function createImage(params, res) {
+    let branch            = params.branch;
+    let clearCache        = params.clearCache;
+    let dockerComposeFile = null;
+    let dockerPath        = path.join(__dirname, '../docker/');
+    fs.readdirSync(dockerPath).forEach((file) => {
+        if (file.indexOf('.yml') > -1) {
+            dockerComposeFile = file;
+        }
+    });
+
+    // let command = `docker-compose -f ` + dockerPath + dockerComposeFile + ` build --progress=plain --build-arg BRANCH=` + branch;
+    let command     = 'docker-compose';
+    let commandArgs = ['-f', dockerPath + dockerComposeFile, 'build', '--progress=plain', '--build-arg', 'BRANCH=' + branch, (clearCache ? '--no-cache' : '')];
+    let x           = childProcess.spawn(command, commandArgs);
+    x.stdout.on('data', (data) => {
+        io.emit('buildProgress', data.toString());
+    });
+    x.stdout.on('close', (data) => {
+        io.emit('buildProgress', "Image Build Complete!");
+        io.emit('buildComplete', true);
+        res.send('Image Created!');
+
+    });
+
+}
+
+function startContainer(res) {
+    let dockerComposeFile = null;
+    let dockerPath        = path.join(__dirname, '../docker/');
+    fs.readdirSync(dockerPath).forEach((file) => {
+        if (file.indexOf('.yml') > -1) {
+            dockerComposeFile = file;
+        }
+    });
+
+    let command     = 'docker-compose';
+    let commandArgs = ['-f', dockerPath + dockerComposeFile, 'up', '-d'];
+    let x           = childProcess.spawn(command, commandArgs);
+    x.stdout.on('data', (data) => {
+        console.log(data.toString());
+        io.emit('buildProgress', data.toString());
+    });
+    x.stdout.on('close', (data) => {
+        io.emit('buildProgress', "Container Started!");
+        res.send('Conatiner Started');
+
+    })
+}
+
+function getContainerList(res) {
+
+    let command        = 'docker';
+    let commandArgs    = ['ps', '-a', '--format', '"{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}"'];
+    let x              = childProcess.spawn(command, commandArgs);
+    let headers        = [
+        {
+            title: 'ID',
+            key  : 'id',
+        },
+        {
+            title: 'Name',
+            key  : 'name',
+        },
+        {
+            title: 'Image',
+            key  : 'image',
+        },
+        {
+            title: 'Status',
+            key  : 'status',
+        }
+    ];
+    let returnData     = {
+        headers   : headers,
+        containers: [],
+    };
+    returnData.headers = headers;
+    x.stdout.on('data', (data) => {
+        let output     = data.toString();
+        let containers = output.split('\n');
+        containers.map((container) => {
+            container        = container.replace(/"/g, '');
+            let containerArr = container.split('|');
+            let containerRow = {};
+            containerArr.forEach((item, index) => {
+                let headerName           = headers[index].key;
+                containerRow[headerName] = item.trim();
+            });
+
+            returnData.containers.push(containerRow);
+        });
+
+        io.emit('containerListUpdated', returnData);
+        res.send(returnData);
+
+    });
+
+}
