@@ -1,20 +1,25 @@
 <script setup>
 import {RouterView} from 'vue-router'
+
 </script>
 <template>
     <v-layout>
-        <v-app-bar color="primary" >
+        <v-app-bar color="primary">
             <v-list-item to="/">
                 <v-icon icon="mdi-home"></v-icon>
                 Home
+            </v-list-item>
+            <v-list-item to="/create">
+                <v-icon icon="mdi-plus"></v-icon>
+                Create
             </v-list-item>
             <v-list-item to="/containers">
                 <v-icon icon="mdi-package"></v-icon>
                 Containers
             </v-list-item>
-            <v-list-item to="/create">
-                <v-icon icon="mdi-plus"></v-icon>
-                Create
+            <v-list-item to="/ssh">
+                <v-icon icon="mdi-console-line"></v-icon>
+                SSH
             </v-list-item>
             <template v-slot:append>
                 <v-list-item to="/settings">
@@ -22,7 +27,6 @@ import {RouterView} from 'vue-router'
                     Settings
                 </v-list-item>
                 <v-app-bar-title class="mx-5">Branch Box</v-app-bar-title>
-
             </template>
         </v-app-bar>
         <v-main>

@@ -1,7 +1,10 @@
+//Main Vue App
 import {createApp} from 'vue'
 import * as labs from 'vuetify/labs/components' //Experimental components
 
+//Pinia Store
 import {createPinia} from 'pinia'
+
 // Vuetify
 import "@mdi/font/css/materialdesignicons.css";
 import 'vuetify/styles'
@@ -42,7 +45,9 @@ const vuetify = createVuetify({
             mdi,
         }
     }
-})
+});
+
+//Create Vue App
 import App from './App.vue'
 import router from './router'
 
@@ -52,4 +57,5 @@ app.use(createPinia())
 app.use(router)
 app.use(vuetify)
 
-const _vm = app.mount('#app')
+app.config.globalProperties.$axios = axios;
+const _vm                          = app.mount('#app')

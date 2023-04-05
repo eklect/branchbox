@@ -24,7 +24,14 @@ const router = createRouter({
             name     : 'settings',
             component: () => import('../views/SettingsView.vue')
 
+        },
+        //Create path for ssh
+        {
+            path     : '/ssh',
+            name     : 'ssh',
+            component: () => import('../views/SshView.vue')
         }
+
     ]
 })
 
