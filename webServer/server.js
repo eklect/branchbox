@@ -4,6 +4,7 @@ const fs           = require('fs');
 const childProcess = require('child_process');
 const bodyParser   = require('body-parser')
 const socketio     = require("socket.io");
+const tmp          = require('tmp');
 const app          = express();
 const port         = 3000;
 const command      = 'docker';
@@ -92,9 +93,24 @@ function createImage(params, res) {
             dockerComposeFile = file;
         }
     });
+    //Create Tmp Env File to use in command line
+    let tmpEnvFile = tmp.fileSync();
+    fs.writeFileSync(tmpEnvFile.name, 'BRANCH=' + branch);
 
-    // let command = `docker-compose -f ` + dockerPath + dockerComposeFile + ` build --progress=plain --build-arg BRANCH=` + branch;
-    let commandArgs = ['compose', '--profile', profile, '-f', dockerPath + dockerComposeFile, 'build', '--progress=plain', '--build-arg', 'BRANCH=' + branch, (clearCache ? '--no-cache' : '')];
+    let commandArgs = [
+        'compose',
+        '--env-file',
+        tmpEnvFile.name,
+        '--profile',
+        profile,
+        '-f',
+        dockerPath + dockerComposeFile,
+        'build',
+        '--progress=plain',
+        '--build-arg',
+        'BRANCH=' + branch,
+        (clearCache ? '--no-cache' : '')
+    ];
     let x           = childProcess.spawn(command, commandArgs);
     x.stdout.on('data', (data) => {
         io.emit('buildProgress', data.toString());
@@ -110,6 +126,7 @@ function createImage(params, res) {
 
 function startContainer(params, res) {
     let profile           = params.profileName;
+    let branch            = params.branch;
     let dockerComposeFile = null;
     let dockerPath        = path.join(__dirname, '../docker/');
     fs.readdirSync(dockerPath).forEach((file) => {
@@ -117,6 +134,10 @@ function startContainer(params, res) {
             dockerComposeFile = file;
         }
     });
+
+    //Create Tmp Env File to use in command line
+    let tmpEnvFile = tmp.fileSync();
+    fs.writeFileSync(tmpEnvFile.name, 'BRANCH=' + branch);
 
     let httpPort    = getOpenPort();
     let httpsPort   = getOpenPort();
@@ -124,35 +145,39 @@ function startContainer(params, res) {
     let mySqlPort   = getOpenPort();
     let commandArgs = [
         'compose',
+        '--env-file',
+        tmpEnvFile.name,
+        '-p',
+        Math.random().toString(36).slice(2),
         '--profile',
         profile,
         '-f',
         dockerPath + dockerComposeFile,
         'up',
+
         '-d',
-        /*        'HTTP_PORT=',
-                httpPort,
-                'HTTPS_PORT=',
-                httpsPort,
-                'SSH_PORT=',
-                sshPort,
-                'MYSQL_PORT=',
-                mySqlPort*/
     ];
     let x           = childProcess.spawn(command, commandArgs);
     x.stdout.on('data', (data) => {
         console.log(data.toString());
         io.emit('buildProgress', data.toString());
     });
+    x.stderr.on('data', (data) => {
+        console.log(data.toString());
+        io.emit('buildProgress', data.toString());
+        io.emit('buildError', data.toString());
+    });
+
     x.stdout.on('close', (data) => {
-        io.emit('buildProgress', "Container Started!");
-        res.send('Conatiner Started');
+        io.emit('buildProgress', "Container Process Completed.");
+        res.send('Container Started');
 
     })
 }
 
 function stopContainer(params, res) {
     let profile           = params.profileName;
+    let projectName       = params.projectName.split('-')[0];
     let dockerComposeFile = null;
     let dockerPath        = path.join(__dirname, '../docker/');
     fs.readdirSync(dockerPath).forEach((file) => {
@@ -161,7 +186,7 @@ function stopContainer(params, res) {
         }
     });
 
-    let commandArgs = ['compose', '--profile', profile, '-f', dockerPath + dockerComposeFile, 'stop',];
+    let commandArgs = ['compose', '-p', projectName, '--profile', profile, '-f', dockerPath + dockerComposeFile, 'stop',];
     let x           = childProcess.spawn(command, commandArgs);
     x.stdout.on('data', (data) => {
         console.log(data.toString());
@@ -176,6 +201,7 @@ function stopContainer(params, res) {
 
 function destroyContainer(params, res) {
     let profile           = params.profileName;
+    let projectName       = params.projectName.split('-')[0];
     let dockerComposeFile = null;
     let dockerPath        = path.join(__dirname, '../docker/');
     fs.readdirSync(dockerPath).forEach((file) => {
@@ -184,7 +210,7 @@ function destroyContainer(params, res) {
         }
     });
 
-    let commandArgs = ['compose', '--profile', profile, '-f', dockerPath + dockerComposeFile, 'down', '-v'];
+    let commandArgs = ['compose', '-p', projectName, '--profile', profile, '-f', dockerPath + dockerComposeFile, 'down', '-v'];
     let x           = childProcess.spawn(command, commandArgs);
     x.stdout.on('data', (data) => {
         console.log(data.toString());
@@ -252,7 +278,6 @@ function getContainerList(res) {
                     let portsList = item.split(',');
                     let ports     = [];
                     portsList.forEach((port) => {
-                        console.log(port);
                         let portArr = port.split('->');
                         let host    = (portArr[0]) ? portArr[0].trim() : null;
                         let guest   = (portArr[1]) ? portArr[1].trim() : null;
