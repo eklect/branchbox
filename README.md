@@ -2,6 +2,8 @@
 
 This is a program to allow you to sandbox your code inside a docker container with a nice UI to create and destroy containers via a web interface.
 
+This is very alpha, so use with care.
+
 
 
 ## Project Setup
