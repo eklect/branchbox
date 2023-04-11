@@ -31,3 +31,4 @@ package-lock.json
 docker/*.yml
 docker/*.DockerFile
 docker/copy/*
+docker/*.zip
