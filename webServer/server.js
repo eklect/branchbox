@@ -6,7 +6,7 @@ const bodyParser   = require('body-parser')
 const socketio     = require("socket.io");
 const tmp          = require('tmp');
 const app          = express();
-const port         = 3000;
+const port         = 8080;
 const command      = 'docker';
 
 const serverTitle = `
