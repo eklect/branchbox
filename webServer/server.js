@@ -87,18 +87,18 @@ function createImage(params, res) {
   fs.writeFileSync(tmpEnvFile.name, 'BRANCH=' + branch)
 
   let commandArgs = [
-    'compose',
-    '--env-file',
-    tmpEnvFile.name,
-    '--profile',
-    profile,
-    '-f',
-    dockerPath + dockerComposeFile,
-    'build',
-    '--progress=plain',
-    '--build-arg',
-    'BRANCH=' + branch,
-    clearCache ? '--no-cache' : ''
+      'compose',
+      '--env-file',
+      tmpEnvFile.name,
+      '--profile',
+      profile,
+      '-f',
+      dockerPath + dockerComposeFile,
+      'build',
+      '--progress=plain',
+      '--build-arg',
+      'BRANCH=' + branch,
+      clearCache ? '--no-cache' : ''
   ]
   let x = childProcess.spawn(command, commandArgs)
   x.stdout.on('data', (data) => {
