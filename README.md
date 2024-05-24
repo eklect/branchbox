@@ -12,28 +12,14 @@ This is very alpha, so use with care.
 npm install
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
+###  How to Use
+- Set your default profile name in the Settings area. For example. if you have a profile in your .yml file as Acme, then you would change the default profile name to Acme. Once you save that setting. It will auto populate on the create Image page. You MUST have a profile part of your .yml docker-compose file. Example of how the syntax looks is below:
 ```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
+version: '3'
+services:
+    devBox:
+        profiles:
+            -   Acme
 ```
 
 # Copyright

@@ -6,7 +6,7 @@ const bodyParser = require('body-parser')
 const socketio = require('socket.io')
 const tmp = require('tmp')
 const app = express()
-const port = 80
+const port = 8181
 const command = 'docker'
 
 const serverTitle = `
@@ -86,6 +86,8 @@ function createImage(params, res) {
   let tmpEnvFile = tmp.fileSync()
   fs.writeFileSync(tmpEnvFile.name, 'BRANCH=' + branch)
 
+  
+  // console.log(fs.readFileSync(tmpEnvFile.name).toString()); //Debug
   let commandArgs = [
       'compose',
       '--env-file',
@@ -97,9 +99,12 @@ function createImage(params, res) {
       'build',
       '--progress=plain',
       '--build-arg',
-      'BRANCH=' + branch,
-      clearCache ? '--no-cache' : ''
+      'BRANCH=' + branch
   ]
+  if(clearCache){
+    commandArgs.push('--no-cache');
+  }
+  console.log(commandArgs);
   let x = childProcess.spawn(command, commandArgs)
   x.stdout.on('data', (data) => {
     io.emit('buildProgress', data.toString())
