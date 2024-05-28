@@ -104,7 +104,6 @@ function createImage(params, res) {
   if(clearCache){
     commandArgs.push('--no-cache');
   }
-  console.log(commandArgs);
   let x = childProcess.spawn(command, commandArgs)
   x.stdout.on('data', (data) => {
     io.emit('buildProgress', data.toString())
